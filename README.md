@@ -13,6 +13,15 @@
 2. **키 넣기**: Supabase 대시보드 > Project Settings > API에서 `anon` `public` 키(또는 Publishable key)를 복사해 `resource/js/config.js`의 `SUPABASE_ANON_KEY`에 넣습니다. `service_role` 키는 절대 넣지 않습니다.
 3. **GitHub Pages 켜기**: 저장소 Settings > Pages > Branch를 `main` / `(root)`로 저장합니다. 1~2분 뒤 `https://buzz0103.github.io/OurHome/` 에서 열립니다.
 
+## 완료 기록 추가 (이미 설정을 마친 경우 한 번만)
+
+일정의 "완료했어요" 체크에는 완료 시각과 누가 눌렀는지가 저장됩니다. 처음 설정 뒤에 생긴 기능이라, Supabase SQL Editor에서 아래 두 줄을 한 번 실행해 주세요.
+
+```sql
+alter table public.events add column if not exists done_at timestamptz;
+alter table public.events add column if not exists done_by text references public.members (id);
+```
+
 ## 구조
 
 ```
