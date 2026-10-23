@@ -1,0 +1,139 @@
+<!doctype html>
+<html lang="ko">
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>우리집 정리</title>
+    <meta name="description" content="집 매도 일정 안내와 물건 나눠 가져가기">
+    <link rel="stylesheet" href="resource/css/font.css">
+    <link rel="stylesheet" href="resource/css/reset.css">
+    <link rel="stylesheet" href="resource/css/pc.css">
+    <link rel="stylesheet" href="resource/css/tablet.css">
+    <link rel="stylesheet" href="resource/css/mobile.css">
+</head>
+<body>
+    <a href="#main-content" class="skip-nav">본문 바로가기</a>
+
+    <div class="wrap">
+        <header class="header">
+            <h1 class="header_title">우리집 정리</h1>
+            <button type="button" class="header_me" data-action="open-who">나: <b class="header_name" data-me-name>선택 안 함</b> · 바꾸기</button>
+        </header>
+
+        <nav class="tabs" role="tablist" aria-label="메뉴">
+            <button type="button" class="tabs_item tabs_item-active" role="tab" id="tab-schedule" aria-selected="true" aria-controls="panel-schedule" data-action="tab" data-tab="schedule">일정 안내</button>
+            <button type="button" class="tabs_item" role="tab" id="tab-items" aria-selected="false" aria-controls="panel-items" data-action="tab" data-tab="items">물건 나누기</button>
+        </nav>
+
+        <main id="main-content" class="main">
+            <p class="notice" data-notice hidden></p>
+
+            <!-- 일정 -->
+            <section class="panel" id="panel-schedule" role="tabpanel" aria-labelledby="tab-schedule" data-panel="schedule">
+                <div data-next></div>
+                <button type="button" class="btn btn-primary btn-block" data-action="add-event" data-write-only>+ 일정 추가하기</button>
+
+                <form class="form" data-event-form hidden>
+                    <h2 class="form_title" data-event-form-title>새 일정</h2>
+                    <div class="field">
+                        <label class="field_label" for="eventTitle">무엇을 하나요?</label>
+                        <input class="field_input" id="eventTitle" name="title" placeholder="예: 이삿짐 업체 방문" required>
+                    </div>
+                    <div class="form_row">
+                        <div class="field">
+                            <label class="field_label" for="eventDate">날짜</label>
+                            <input class="field_input" id="eventDate" name="date" type="date" required>
+                        </div>
+                        <div class="field">
+                            <label class="field_label" for="eventTime">시간 (없으면 비워두기)</label>
+                            <input class="field_input" id="eventTime" name="time" type="time">
+                        </div>
+                    </div>
+                    <div class="field">
+                        <label class="field_label" for="eventPlace">장소</label>
+                        <input class="field_input" id="eventPlace" name="place" placeholder="예: 부동산 사무실">
+                    </div>
+                    <div class="field">
+                        <label class="field_label" for="eventNote">메모</label>
+                        <textarea class="field_input field_input-area" id="eventNote" name="note" placeholder="예: 신분증, 도장 챙기기"></textarea>
+                    </div>
+                    <div class="form_actions">
+                        <button type="submit" class="btn btn-primary">저장하기</button>
+                        <button type="button" class="btn btn-outline" data-action="cancel-event">취소</button>
+                    </div>
+                </form>
+
+                <ul class="schedule" data-event-list></ul>
+            </section>
+
+            <!-- 물건 -->
+            <section class="panel" id="panel-items" role="tabpanel" aria-labelledby="tab-items" data-panel="items" hidden>
+                <div class="summary" data-summary></div>
+                <div class="filter" data-filter></div>
+                <button type="button" class="btn btn-primary btn-block" data-action="add-item" data-write-only>+ 물건 올리기</button>
+
+                <form class="form" data-item-form hidden>
+                    <h2 class="form_title">물건 올리기</h2>
+                    <div class="field">
+                        <label class="field_label" for="itemName">물건 이름</label>
+                        <input class="field_input" id="itemName" name="name" placeholder="예: 자개장, 안방 TV" required>
+                    </div>
+                    <div class="field">
+                        <label class="field_label" for="itemLocation">어디 있나요? / 설명</label>
+                        <input class="field_input" id="itemLocation" name="location" placeholder="예: 거실, 2층 창고">
+                    </div>
+                    <div class="field">
+                        <label class="field_label" for="itemPhoto">사진 (선택)</label>
+                        <input class="field_input field_input-file" id="itemPhoto" name="photo" type="file" accept="image/*" data-photo-input>
+                        <img class="field_preview" src="data:," alt="올릴 사진 미리보기" width="320" height="200" data-photo-preview hidden>
+                    </div>
+                    <div class="form_actions">
+                        <button type="submit" class="btn btn-primary" data-item-submit>올리기</button>
+                        <button type="button" class="btn btn-outline" data-action="cancel-item">취소</button>
+                    </div>
+                </form>
+
+                <ul class="goods" data-item-list></ul>
+            </section>
+        </main>
+    </div>
+
+    <!-- 나 고르기 -->
+    <div class="modal" data-who hidden>
+        <div class="modal_dialog" role="dialog" aria-modal="true" aria-labelledby="whoTitle">
+            <h2 class="modal_title" id="whoTitle">누구세요?</h2>
+            <p class="modal_desc">본인 이름을 눌러 주세요. 이 기기에서는 다음부터 기억해요.</p>
+            <div class="modal_names" data-name-grid></div>
+            <button type="button" class="link" data-action="edit-names" data-write-only>가족 이름 고치기</button>
+            <form class="form form-plain" data-names-form hidden>
+                <div class="field">
+                    <label class="field_label" for="name-m1">1번째 사람</label>
+                    <input class="field_input" id="name-m1" name="m1" maxlength="10">
+                </div>
+                <div class="field">
+                    <label class="field_label" for="name-m2">2번째 사람</label>
+                    <input class="field_input" id="name-m2" name="m2" maxlength="10">
+                </div>
+                <div class="field">
+                    <label class="field_label" for="name-m3">3번째 사람</label>
+                    <input class="field_input" id="name-m3" name="m3" maxlength="10">
+                </div>
+                <div class="field">
+                    <label class="field_label" for="name-m4">4번째 사람</label>
+                    <input class="field_input" id="name-m4" name="m4" maxlength="10">
+                </div>
+                <div class="form_actions">
+                    <button type="submit" class="btn btn-primary">이름 저장</button>
+                    <button type="button" class="btn btn-outline" data-action="close-names">닫기</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <div class="toast" role="status" aria-live="polite" data-toast hidden></div>
+
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.45.4/dist/umd/supabase.min.js"></script>
+    <script src="resource/js/config.js"></script>
+    <script src="resource/js/main.js"></script>
+</body>
+</html>

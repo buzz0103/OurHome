@@ -1,0 +1,118 @@
+/* 기본 (디자인 시스템: 토스 — my-workspace/.claude/design-systems/toss.md) */
+body {color: #191f28; font-family: "Pretendard", -apple-system, BlinkMacSystemFont, "Segoe UI", "Malgun Gothic", sans-serif; font-size: 16px; line-height: 24px; background: #f9fafb;}
+:focus-visible {outline: 2px solid #3182F6; outline-offset: 2px;}
+.skip-nav {position: absolute; left: 0; top: -100%; z-index: 100; width: 100%; padding: 12px 0; background: #3182F6; color: #ffffff; text-align: center;}
+.skip-nav:focus {top: 0;}
+
+/* 레이아웃 */
+.wrap {display: flex; flex-direction: column; gap: 24px; max-width: 640px; margin: 0 auto; padding: 24px 16px 64px;}
+.header {display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: 16px;}
+.header_title {font-size: 28px; line-height: 38px; font-weight: 700;}
+.header_me {height: 40px; padding: 0 16px; border: 1px solid #cccccc; border-radius: 8px; color: #4e5968; font-size: 14px; font-weight: 600; background: transparent;}
+.header_me:hover {background: #f2f4f6;}
+.header_name {color: #1b64da;}
+.tabs {display: flex; margin-top: -8px; border-bottom: 1px solid #e5e8eb;}
+.tabs_item {flex: 1; height: 50px; margin-bottom: -1px; border: 0; border-bottom: 2px solid transparent; color: #6b7684; font-size: 17px; font-weight: 600; background: transparent;}
+.tabs_item:hover {background: #f2f4f6;}
+.tabs_item-active {border-bottom-color: #3182f6; color: #1b64da;}
+.main {display: flex; flex-direction: column; gap: 16px;}
+.panel {display: flex; flex-direction: column; gap: 16px;}
+.notice {padding: 16px; border-radius: 12px; color: #4e5968; font-size: 14px; line-height: 20px; background: #f2f4f6;}
+
+/* 버튼 */
+.btn {display: inline-flex; align-items: center; justify-content: center; height: 50px; padding: 0 16px; border: 1px solid transparent; border-radius: 8px; font-size: 16px; font-weight: 600;}
+.btn-primary {color: #ffffff; background: #3182f6;}
+.btn-primary:hover {background: #1b6be0;}
+.btn-primary:disabled {opacity: 0.6; cursor: default;}
+.btn-secondary {color: #191f28; background: #f2f4f6;}
+.btn-secondary:hover {background: #e5e8eb;}
+.btn-outline {border-color: #cccccc; color: #4e5968; background: transparent;}
+.btn-outline:hover {background: #f2f4f6;}
+.btn-danger {color: #ffffff; background: #f04452;}
+.btn-danger:hover {background: #d22030;}
+.btn-block {width: 100%;}
+.link {min-height: 40px; padding: 8px; border: 0; color: #6b7684; font-size: 14px; font-weight: 600; background: none;}
+.link:hover {color: #191f28;}
+.link-danger {color: #d22030;}
+.link-danger:hover {color: #b0151f;}
+.tag {display: inline-flex; align-items: center; align-self: flex-start; padding: 4px 8px; border-radius: 6px; color: #4e5968; font-size: 12px; line-height: 16px; font-weight: 600; background: #f9fafb;}
+.tag-blue {color: #1b64da; background: #e8f3ff;}
+.empty {padding: 40px 16px; border-radius: 12px; color: #6b7684; font-size: 14px; line-height: 20px; text-align: center; background: #ffffff;}
+
+/* 일정 */
+.next {display: flex; flex-direction: column; gap: 4px; padding: 24px; border-radius: 12px; background: #ffffff;}
+.next_label {color: #6b7684; font-size: 14px; line-height: 20px; font-weight: 600;}
+.next_dday {color: #1b64da; font-size: 28px; line-height: 38px; font-weight: 700; font-variant-numeric: tabular-nums;}
+.next_title {font-size: 17px; line-height: 24px; font-weight: 700;}
+.next_when {color: #4e5968; font-size: 14px; line-height: 20px;}
+.schedule {padding: 0 24px; border-radius: 12px; background: #ffffff;}
+.schedule_item {display: grid; grid-template-columns: 56px 1fr; gap: 16px; align-items: start; padding: 20px 0; border-bottom: 1px solid #e5e8eb;}
+.schedule_item:last-child {border-bottom: 0;}
+.schedule_item-past {opacity: 0.5;}
+.schedule_date {text-align: center; font-variant-numeric: tabular-nums;}
+.schedule_month {color: #6b7684; font-size: 12px; line-height: 16px;}
+.schedule_day {font-size: 22px; line-height: 30px; font-weight: 700;}
+.schedule_week {color: #6b7684; font-size: 12px; line-height: 16px;}
+.schedule_body {display: flex; flex-direction: column; gap: 4px; min-width: 0;}
+.schedule_title {font-size: 17px; line-height: 24px; font-weight: 700;}
+.schedule_meta {color: #4e5968; font-size: 14px; line-height: 20px;}
+.schedule_note {color: #4e5968; font-size: 14px; line-height: 20px; white-space: pre-wrap; overflow-wrap: anywhere;}
+.schedule_actions {display: flex; gap: 4px; margin-left: -8px;}
+
+/* 폼 */
+.form {display: flex; flex-direction: column; gap: 16px; padding: 24px; border-radius: 12px; background: #ffffff;}
+.form-plain {padding: 0;}
+.form_title {font-size: 22px; line-height: 30px; font-weight: 700;}
+.form_row {display: grid; grid-template-columns: 1fr 1fr; gap: 16px;}
+.form_actions {display: flex; flex-wrap: wrap; gap: 8px;}
+.form_actions .btn-primary {flex: 1 1 160px;}
+.form_actions .btn-danger {flex: 1 1 160px;}
+.form_actions .btn-outline {flex: 0 1 112px;}
+.form_actions .btn-secondary {flex: 0 1 112px;}
+.field {display: flex; flex-direction: column; gap: 8px;}
+.field_label {color: #4e5968; font-size: 14px; line-height: 20px; font-weight: 600;}
+.field_input {display: block; width: 100%; height: 40px; padding: 0 16px; border: 1px solid #cccccc; border-radius: 6px; color: #191f28; font-size: 16px; background: #ffffff;}
+.field_input:focus {border-color: #3182f6;}
+.field_input-area {height: auto; min-height: 96px; padding: 8px 16px; resize: vertical;}
+.field_input-file {height: auto; padding: 8px 16px;}
+.field_preview {display: block; width: 100%; max-width: 320px; height: auto; max-height: 200px; border-radius: 8px; object-fit: cover;}
+
+/* 물건 */
+.summary {display: grid; grid-template-columns: repeat(4, 1fr); gap: 8px;}
+.summary_item {display: flex; flex-direction: column; align-items: center; justify-content: center; min-height: 64px; padding: 8px 4px; border: 1px solid #e5e8eb; border-radius: 8px; background: #ffffff;}
+.summary_item:hover {border-color: #cccccc;}
+.summary_item-active {border-color: #3182f6; background: #e8f3ff;}
+.summary_count {font-size: 20px; line-height: 28px; font-weight: 700; font-variant-numeric: tabular-nums;}
+.summary_name {color: #4e5968; font-size: 12px; line-height: 16px; text-align: center; overflow-wrap: anywhere;}
+.filter {display: flex; flex-wrap: wrap; gap: 8px;}
+.filter_item {height: 36px; padding: 0 12px; border: 1px solid #cccccc; border-radius: 8px; color: #4e5968; font-size: 14px; font-weight: 600; background: #ffffff;}
+.filter_item-active {border-color: #191f28; color: #ffffff; background: #191f28;}
+.goods {display: flex; flex-direction: column; gap: 16px;}
+.goods_item {display: flex; flex-direction: column; overflow: hidden; border: 2px solid transparent; border-radius: 12px; background: #ffffff;}
+.goods_item-mine {border-color: #3182f6;}
+.goods_thumb {overflow: hidden;}
+.goods_img {display: block; width: 100%; height: 220px; object-fit: cover; background: #f2f4f6; transition: transform 0.2s ease;}
+.goods_item:hover .goods_img {transform: scale(1.03);}
+.goods_body {display: flex; flex-direction: column; gap: 12px; padding: 20px 24px;}
+.goods_name {font-size: 17px; line-height: 24px; font-weight: 700; overflow-wrap: anywhere;}
+.goods_where {margin-top: -8px; color: #4e5968; font-size: 14px; line-height: 20px;}
+.goods_status {align-self: flex-start; padding: 4px 8px; border-radius: 6px; font-size: 14px; line-height: 20px; font-weight: 600;}
+.goods_status-free {color: #1b64da; background: #e8f3ff;}
+.goods_status-other {color: #4e5968; background: #f2f4f6;}
+.goods_status-mine {color: #ffffff; background: #3182f6;}
+.goods_foot {display: flex; justify-content: flex-end; margin: -8px -8px -12px 0;}
+.confirm {display: flex; flex-direction: column; gap: 12px; padding: 16px; border-radius: 8px; font-size: 14px; line-height: 20px; background: #f2f4f6;}
+
+/* 나 고르기 창 */
+.modal {position: fixed; inset: 0; z-index: 20; display: flex; align-items: center; justify-content: center; padding: 16px; background: rgba(0, 0, 0, 0.5);}
+.modal_dialog {display: flex; flex-direction: column; gap: 16px; width: 100%; max-width: 400px; max-height: 100%; overflow-y: auto; padding: 24px; border-radius: 16px; background: #ffffff;}
+.modal_title {font-size: 22px; line-height: 30px; font-weight: 700;}
+.modal_desc {color: #4e5968; font-size: 14px; line-height: 20px;}
+.modal_names {display: grid; grid-template-columns: 1fr 1fr; gap: 8px;}
+.modal_name {height: 56px; border: 1px solid #e5e8eb; border-radius: 8px; font-size: 16px; font-weight: 600; background: #f9fafb; overflow-wrap: anywhere;}
+.modal_name:hover {border-color: #cccccc;}
+.modal_name-active {border-color: #3182f6; color: #1b64da; background: #e8f3ff;}
+.toast {position: fixed; bottom: 24px; left: 50%; z-index: 30; max-width: calc(100% - 32px); padding: 12px 20px; border-radius: 12px; color: #ffffff; font-size: 14px; line-height: 20px; text-align: center; background: #191f28; transform: translateX(-50%);}
+
+/* 숨김 (display 지정한 블록보다 우선) */
+.panel[hidden], .form[hidden], .modal[hidden], .notice[hidden], .toast[hidden], .field_preview[hidden], .btn[hidden], .link[hidden] {display: none;}

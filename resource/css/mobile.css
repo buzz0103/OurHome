@@ -1,0 +1,13 @@
+@media (max-width: 767px) {
+    .wrap {gap: 16px; padding: 16px 16px 48px;}
+    .header_title {font-size: 24px; line-height: 32px;}
+    .tabs {margin-top: 0;}
+    .next {padding: 20px;}
+    .schedule {padding: 0 16px;}
+    .form {padding: 20px;}
+    .form-plain {padding: 0;}
+    .form_row {grid-template-columns: 1fr;}
+    .modal_dialog {padding: 20px;}
+    .goods_img {height: 200px;}
+    .goods_body {padding: 16px 20px;}
+}

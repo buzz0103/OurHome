@@ -1,0 +1,10 @@
+*, *::before, *::after {box-sizing: border-box;}
+html, body, h1, h2, p, ul, li, figure {margin: 0; padding: 0;}
+ul {list-style: none;}
+img {max-width: 100%;}
+button, input, textarea, select {font: inherit; color: inherit;}
+button {cursor: pointer;}
+[hidden] {display: none;}
+@media (prefers-reduced-motion: reduce) {
+    *, *::before, *::after {transition: none; animation: none;}
+}
