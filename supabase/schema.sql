@@ -21,6 +21,10 @@ create table if not exists public.events (
     created_at timestamptz not null default now()
 );
 
+-- 일정 완료 기록 (언제, 누가)
+alter table public.events add column if not exists done_at timestamptz;
+alter table public.events add column if not exists done_by text references public.members (id);
+
 -- 물건
 create table if not exists public.items (
     id uuid primary key default gen_random_uuid(),
