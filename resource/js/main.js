@@ -89,6 +89,12 @@ document.addEventListener("DOMContentLoaded", () => {
         const hour12 = hh % 12 === 0 ? 12 : hh % 12;
         return ampm + " " + hour12 + "시" + (mm ? " " + mm + "분" : "");
     }
+    function formatStamp(iso) {
+        const d = new Date(iso);
+        const hh = String(d.getHours()).padStart(2, "0");
+        const mm = String(d.getMinutes()).padStart(2, "0");
+        return (d.getMonth() + 1) + "월 " + d.getDate() + "일 " + hh + ":" + mm;
+    }
     function formatDate(value) {
         const date = parseDate(value);
         return (date.getMonth() + 1) + "월 " + date.getDate() + "일 (" + WEEKDAYS[date.getDay()] + ")";
@@ -185,7 +191,7 @@ document.addEventListener("DOMContentLoaded", () => {
     function renderSchedule() {
         const upcoming = state.events.filter((ev) => getDayDiff(ev.date) >= 0);
         const past = state.events.filter((ev) => getDayDiff(ev.date) < 0).reverse();
-        const next = upcoming[0];
+        const next = upcoming.find((ev) => !ev.done_at);
 
         $("[data-next]").replaceChildren(next ? h("div", { class: "next" },
             h("span", { class: "next_label" }, "다음 일정"),
@@ -209,16 +215,24 @@ document.addEventListener("DOMContentLoaded", () => {
         const date = parseDate(ev.date);
         const diff = getDayDiff(ev.date);
         const isDeleting = state.deleteTarget && state.deleteTarget.id === ev.id;
-        return h("li", { class: "schedule_item" + (diff < 0 ? " schedule_item-past" : "") },
+        const done = Boolean(ev.done_at);
+        return h("li", { class: "schedule_item" + (done ? " schedule_item-done" : diff < 0 ? " schedule_item-past" : "") },
             h("div", { class: "schedule_date" },
                 h("div", { class: "schedule_month" }, (date.getMonth() + 1) + "월"),
                 h("div", { class: "schedule_day" }, date.getDate()),
                 h("div", { class: "schedule_week" }, WEEKDAYS[date.getDay()] + "요일")),
             h("div", { class: "schedule_body" },
-                h("span", { class: "tag tag-blue" }, formatDday(diff)),
+                done ? h("span", { class: "tag tag-green" }, "완료") : h("span", { class: "tag tag-blue" }, formatDday(diff)),
                 h("div", { class: "schedule_title" }, ev.title),
                 (ev.time || ev.place) ? h("div", { class: "schedule_meta" }, [formatTime(ev.time), ev.place].filter(Boolean).join(" · ")) : null,
                 ev.note ? h("div", { class: "schedule_note" }, ev.note) : null,
+                done
+                    ? h("div", { class: "check check-done" },
+                        h("button", { type: "button", class: "check_box", "aria-pressed": "true", "aria-label": "완료 취소", "data-action": "undone", "data-id": ev.id }),
+                        h("span", { class: "check_text" }, "완료 · " + formatStamp(ev.done_at) + (ev.done_by ? " · " + nameOf(ev.done_by) : "")))
+                    : h("div", { class: "check" },
+                        h("button", { type: "button", class: "check_box", "aria-pressed": "false", "data-action": "done", "data-id": ev.id },
+                            h("span", { class: "check_label" }, "완료했어요"))),
                 h("div", { class: "schedule_actions" },
                     h("button", { type: "button", class: "link", "data-action": "edit-event", "data-id": ev.id }, "고치기"),
                     h("button", { type: "button", class: "link link-danger", "data-action": "ask-delete", "data-kind": "event", "data-id": ev.id }, "지우기")),
@@ -257,6 +271,22 @@ document.addEventListener("DOMContentLoaded", () => {
         showToast(state.editingEventId ? "일정을 고쳤어요" : "일정을 올렸어요");
         state.editingEventId = null;
         await loadAll();
+    }
+
+    async function setDone(id, done) {
+        const row = done
+            ? { done_at: new Date().toISOString(), done_by: state.me || null }
+            : { done_at: null, done_by: null };
+        const { error } = await client.from("events").update(row).eq("id", id);
+        if (error) {
+            console.error(error);
+            showToast(/done_/.test(error.message || "")
+                ? "완료 기록 칸이 아직 없어요. README의 '완료 기록 추가'를 먼저 실행해 주세요."
+                : "저장하지 못했어요. 인터넷 연결을 확인하고 다시 눌러 주세요.");
+            return;
+        }
+        await loadAll();
+        showToast(done ? "완료로 표시했어요" : "완료를 취소했어요");
     }
 
     // ---------- 물건 ----------
@@ -467,6 +497,8 @@ document.addEventListener("DOMContentLoaded", () => {
             case "cancel-event": $("[data-event-form]").hidden = true; break;
             case "add-item": openItemForm(); break;
             case "cancel-item": $("[data-item-form]").hidden = true; break;
+            case "done": setDone(id, true); break;
+            case "undone": setDone(id, false); break;
             case "pick": pickItem(id, true); break;
             case "unpick": pickItem(id, false); break;
             case "filter":
