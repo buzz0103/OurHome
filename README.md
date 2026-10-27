@@ -4,12 +4,13 @@
 
 - **일정 안내**: 계약일·이사일 같은 일정을 올리고 D-day로 확인
 - **물건 나누기**: 집안 물건을 사진과 함께 올리고, 가져갈 사람이 "제가 가져갈게요"로 고르기
+- **정리 목록**: 대형폐기물(관악구 수수료 검색 → 예상 금액 합산), 수거요청, 분리수거 할 일을 함께 체크
 
 데이터는 Supabase에 저장되고, 화면은 GitHub Pages로 공개됩니다. 로그인 없이 링크만 있으면 쓸 수 있습니다.
 
 ## 처음 한 번 설정
 
-1. **Supabase 테이블 만들기**: Supabase 대시보드 > SQL Editor에 `supabase/schema.sql` 전체를 붙여넣고 Run을 누릅니다.
+1. **Supabase 테이블 만들기**: Supabase 대시보드 > SQL Editor에 `supabase/schema.sql` 전체를 붙여넣고 Run을 누릅니다. (이미 실행했다면 정리 목록용 `supabase/cleanup.sql` 만 실행하면 됩니다.)
 2. **키 넣기**: Supabase 대시보드 > Project Settings > API에서 `anon` `public` 키(또는 Publishable key)를 복사해 `resource/js/config.js`의 `SUPABASE_ANON_KEY`에 넣습니다. `service_role` 키는 절대 넣지 않습니다.
 3. **GitHub Pages 켜기**: 저장소 Settings > Pages > Branch를 `main` / `(root)`로 저장합니다. 1~2분 뒤 `https://buzz0103.github.io/OurHome/` 에서 열립니다.
 
@@ -27,10 +28,23 @@ alter table public.events add column if not exists done_by text references publi
 ```
 index.html
 supabase/schema.sql      ← 테이블·사진 저장소·권한 설정
+supabase/cleanup.sql     ← 정리 목록 테이블만 따로 추가
 resource/css/            ← font → reset → pc → tablet → mobile
 resource/js/config.js    ← Supabase 주소와 anon 키
+resource/js/bulky-fees.js ← 관악구 대형폐기물 수수료 (자동 생성)
 resource/js/main.js
+scripts/update-bulky-fees.js
 ```
+
+## 대형폐기물 수수료 새로 받기
+
+관악구 수수료가 바뀌면 아래 명령으로 `resource/js/bulky-fees.js` 를 다시 만들고 커밋합니다.
+
+```
+node scripts/update-bulky-fees.js
+```
+
+출처: https://smartclean.gwanak.go.kr/online/bulky/item
 
 ## 주의
 

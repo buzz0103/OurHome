@@ -68,3 +68,25 @@ drop policy if exists "item_photos_insert" on storage.objects;
 create policy "item_photos_insert" on storage.objects for insert to anon with check (bucket_id = 'item-photos');
 drop policy if exists "item_photos_delete" on storage.objects;
 create policy "item_photos_delete" on storage.objects for delete to anon using (bucket_id = 'item-photos');
+
+-- 정리 목록 (대형폐기물·수거요청·분리수거)
+create table if not exists public.cleanup (
+    id uuid primary key default gen_random_uuid(),
+    kind text not null check (kind in ('bulky', 'pickup', 'recycle')),
+    name text not null,
+    detail text,
+    price integer not null default 0,
+    qty integer not null default 1 check (qty > 0),
+    done boolean not null default false,
+    created_by text references public.members (id),
+    created_at timestamptz not null default now()
+);
+
+alter table public.cleanup enable row level security;
+drop policy if exists "cleanup_all" on public.cleanup;
+create policy "cleanup_all" on public.cleanup for all to anon using (true) with check (true);
+
+do $$
+begin
+    begin alter publication supabase_realtime add table public.cleanup; exception when duplicate_object then null; end;
+end $$;

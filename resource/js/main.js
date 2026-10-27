@@ -3,12 +3,21 @@ document.addEventListener("DOMContentLoaded", () => {
     const PHOTO_BUCKET = "item-photos";
     const WEEKDAYS = ["일", "월", "화", "수", "목", "금", "토"];
     const ME_KEY = "ourhome.me";
+    const TABS = ["schedule", "items", "cleanup"];
+    const CLEANUP_KINDS = { bulky: "대형폐기물", pickup: "수거요청", recycle: "분리수거" };
+    const FEES = typeof BULKY_FEES === "object" ? BULKY_FEES : { items: [], categories: [], source: "", updated: "" };
+    // 무상방문수거 안내를 붙일 가전 품목
+    const FREE_PICKUP_PATTERN = /냉장고|세탁기|에어컨|텔레비전|건조기|정수기|식기세척기/;
 
     const state = {
         names: { m1: "가족 1", m2: "가족 2", m3: "가족 3", m4: "가족 4" },
         me: readLocal(ME_KEY),
         events: [],
         items: [],
+        cleanup: [],
+        cleanupReady: null,
+        cleanupKind: readLocal("ourhome.cleanupKind") || "bulky",
+        feeCat: -1,
         filter: "all",
         deleteTarget: null,
         editingEventId: null,
@@ -118,7 +127,20 @@ document.addEventListener("DOMContentLoaded", () => {
         state.events = events.data;
         state.items = items.data;
         state.loaded = true;
+        await loadCleanup();
         renderAll();
+    }
+
+    // 정리 목록 테이블은 나중에 추가돼서, 없어도 다른 탭은 그대로 쓰게 따로 불러옴
+    async function loadCleanup() {
+        const { data, error } = await client.from("cleanup").select("*").order("created_at");
+        if (error) {
+            console.error(error);
+            state.cleanupReady = false;
+            return;
+        }
+        state.cleanupReady = true;
+        state.cleanup = data;
     }
 
     let reloadTimer = null;
@@ -132,6 +154,7 @@ document.addEventListener("DOMContentLoaded", () => {
             .on("postgres_changes", { event: "*", schema: "public", table: "members" }, scheduleReload)
             .on("postgres_changes", { event: "*", schema: "public", table: "events" }, scheduleReload)
             .on("postgres_changes", { event: "*", schema: "public", table: "items" }, scheduleReload)
+            .on("postgres_changes", { event: "*", schema: "public", table: "cleanup" }, scheduleReload)
             .subscribe();
         // 휴대폰에서 다시 화면을 켰을 때 최신으로
         document.addEventListener("visibilitychange", () => {
@@ -141,15 +164,14 @@ document.addEventListener("DOMContentLoaded", () => {
 
     // ---------- 탭 ----------
     function selectTab(name) {
-        const isSchedule = name !== "items";
+        const current = TABS.includes(name) ? name : "schedule";
         document.querySelectorAll("[data-tab]").forEach((tab) => {
-            const active = tab.dataset.tab === (isSchedule ? "schedule" : "items");
+            const active = tab.dataset.tab === current;
             tab.classList.toggle("tabs_item-active", active);
             tab.setAttribute("aria-selected", String(active));
         });
-        $("[data-panel='schedule']").hidden = !isSchedule;
-        $("[data-panel='items']").hidden = isSchedule;
-        try { history.replaceState(null, "", "#" + (isSchedule ? "schedule" : "items")); } catch (e) { /* 무시 */ }
+        TABS.forEach((tab) => { $("[data-panel='" + tab + "']").hidden = tab !== current; });
+        try { history.replaceState(null, "", "#" + current); } catch (e) { /* 무시 */ }
     }
 
     // ---------- 나 고르기 ----------
@@ -441,6 +463,184 @@ document.addEventListener("DOMContentLoaded", () => {
         }
     }
 
+    // ---------- 정리 목록 ----------
+    function formatWon(value) {
+        return value.toLocaleString("ko-KR") + "원";
+    }
+    function getBulkyRows() {
+        return state.cleanup.filter((row) => row.kind === "bulky");
+    }
+    function getBulkyTotal() {
+        return getBulkyRows().reduce((sum, row) => sum + row.price * row.qty, 0);
+    }
+
+    function renderCleanup() {
+        const kind = state.cleanupKind;
+        const ready = client && state.cleanupReady === true;
+        const notice = $("[data-cleanup-notice]");
+        notice.hidden = state.cleanupReady !== false;
+        notice.textContent = "정리 목록 저장소가 아직 없어요. Supabase SQL Editor에서 supabase/cleanup.sql 을 한 번 실행해 주세요.";
+
+        const bulky = getBulkyRows();
+        const pieces = bulky.reduce((sum, row) => sum + row.qty, 0);
+        const remain = state.cleanup.filter((row) => !row.done).length;
+        $("[data-fee-summary]").replaceChildren(
+            h("span", { class: "fee_label" }, "대형폐기물 예상 수수료"),
+            h("strong", { class: "fee_total" }, formatWon(getBulkyTotal())),
+            h("span", { class: "fee_meta" }, "대형폐기물 " + pieces + "개 · 남은 할 일 " + remain + "건"));
+
+        $("[data-cleanup-kinds]").replaceChildren(...Object.entries(CLEANUP_KINDS).map(([key, label]) => h("button", {
+            type: "button",
+            class: "filter_item" + (kind === key ? " filter_item-active" : ""),
+            "aria-pressed": String(kind === key),
+            "data-action": "cleanup-kind",
+            "data-key": key,
+        }, label + " " + state.cleanup.filter((row) => row.kind === key).length)));
+
+        document.querySelectorAll("[data-cleanup-section]").forEach((el) => { el.hidden = el.dataset.cleanupSection !== kind; });
+        document.querySelectorAll("[data-cleanup-form]").forEach((form) => { form.hidden = !ready || form.dataset.cleanupForm !== kind; });
+        if (kind !== "bulky" || !ready) $("[data-fee-form]").hidden = true;
+
+        $("[data-fee-source]").replaceChildren("수수료 출처: ",
+            h("a", { class: "fee_link", href: FEES.source, target: "_blank", rel: "noopener" }, "스마트클린 관악"),
+            " (" + FEES.updated + " 기준 " + FEES.items.length + "개 품목). 실제 금액은 신고할 때 다시 확인하세요.");
+
+        const list = $("[data-cleanup-list]");
+        if (!state.loaded || state.cleanupReady === null) {
+            list.replaceChildren(h("li", { class: "empty" }, client ? "정리 목록을 불러오는 중이에요…" : "아직 연결 설정이 안 됐어요."));
+            return;
+        }
+        if (state.cleanupReady === false) {
+            list.replaceChildren(h("li", { class: "empty" }, "저장소를 만들면 여기에 정리 목록이 보여요."));
+            return;
+        }
+        const rows = state.cleanup.filter((row) => row.kind === kind);
+        if (!rows.length) {
+            const guide = { bulky: "‘+ 등록’을 눌러 버릴 물건을 검색해 보세요.", pickup: "수거를 맡길 물건을 위에서 추가하세요.", recycle: "분리수거할 것을 종류별로 추가하세요." };
+            list.replaceChildren(h("li", { class: "empty" }, "아직 " + CLEANUP_KINDS[kind] + " 항목이 없어요.", h("br"), guide[kind]));
+            return;
+        }
+        const items = rows.map(renderCleanupRow);
+        if (kind === "bulky") items.push(h("li", { class: "todo_total" }, h("span", null, "합계"), h("strong", null, formatWon(getBulkyTotal()))));
+        list.replaceChildren(...items);
+    }
+
+    function renderCleanupRow(row) {
+        const isBulky = row.kind === "bulky";
+        const isDeleting = state.deleteTarget && state.deleteTarget.id === row.id;
+        const checkId = "done-" + row.id;
+        const meta = [h("span", { class: "tag" }, row.detail || CLEANUP_KINDS[row.kind])];
+        if (isBulky) meta.push(h("span", null, "개당 " + formatWon(row.price)));
+        if (row.created_by) meta.push(h("span", null, nameOf(row.created_by) + "님이 추가"));
+        return h("li", { class: "todo_item" + (row.done ? " todo_item-done" : "") },
+            h("input", { class: "todo_check", type: "checkbox", id: checkId, checked: row.done, "data-cleanup-done": row.id }),
+            h("div", { class: "todo_body" },
+                h("label", { class: "todo_title", for: checkId }, row.name),
+                h("div", { class: "todo_meta" }, meta),
+                isBulky && FREE_PICKUP_PATTERN.test(row.name)
+                    ? h("div", { class: "todo_tip" }, "무상방문수거 대상일 수 있어요. ", h("a", { class: "todo_link", href: "https://www.15990903.or.kr", target: "_blank", rel: "noopener" }, "확인하기")) : null,
+                h("div", { class: "todo_actions" },
+                    isBulky ? h("div", { class: "qty" },
+                        h("button", { type: "button", class: "qty_btn", "aria-label": "수량 줄이기", "data-action": "cleanup-qty", "data-id": row.id, "data-step": "-1", disabled: row.qty <= 1 }, "−"),
+                        h("span", { class: "qty_value", "aria-live": "polite" }, row.qty + "개"),
+                        h("button", { type: "button", class: "qty_btn", "aria-label": "수량 늘리기", "data-action": "cleanup-qty", "data-id": row.id, "data-step": "1" }, "+")) : null,
+                    isBulky ? h("strong", { class: "todo_price" }, formatWon(row.price * row.qty)) : null,
+                    h("button", { type: "button", class: "link link-danger", "data-action": "ask-delete", "data-kind": "cleanup", "data-id": row.id }, "지우기")),
+                isDeleting ? renderConfirm() : null)
+        );
+    }
+
+    function renderFeeResults() {
+        const raw = $("[data-fee-search]").value.trim();
+        const query = raw.replace(/\s+/g, "");
+        const hits = [];
+        FEES.items.forEach((fee, index) => {
+            if (state.feeCat >= 0 && fee[0] !== state.feeCat) return;
+            if (query && !(fee[1] + fee[2]).replace(/\s+/g, "").includes(query)) return;
+            hits.push(index);
+        });
+        const shown = hits.slice(0, 60);
+
+        const cats = [["전체", -1], ...FEES.categories.map((label, index) => [label, index])];
+        $("[data-fee-cats]").replaceChildren(...cats.map(([label, index]) => h("button", {
+            type: "button",
+            class: "filter_item" + (state.feeCat === index ? " filter_item-active" : ""),
+            "aria-pressed": String(state.feeCat === index),
+            "data-action": "fee-cat",
+            "data-key": String(index),
+        }, label)));
+
+        $("[data-fee-results]").replaceChildren(...shown.map((index) => {
+            const [cat, name, spec, price] = FEES.items[index];
+            return h("li", null, h("button", { type: "button", class: "result_item", "data-action": "add-fee", "data-index": String(index) },
+                h("span", { class: "result_text" },
+                    h("span", { class: "result_spec" }, spec),
+                    h("span", { class: "result_cat" }, FEES.categories[cat] + " · " + name)),
+                h("span", { class: "result_price" }, formatWon(price)),
+                h("span", { class: "result_add", "aria-hidden": "true" }, "+")));
+        }));
+        $("[data-fee-hint]").textContent = !hits.length
+            ? "찾는 품목이 없어요. 다른 이름(예: 장롱 → 옷장)으로 찾거나 ‘기타(3㎏당)’을 확인하세요."
+            : hits.length > shown.length ? hits.length + "개 중 " + shown.length + "개를 보여드려요. 검색어를 더 적어 보세요." : hits.length + "개 품목";
+    }
+
+    function openFeeSearch() {
+        if (state.cleanupReady !== true) { showToast("정리 목록 저장소를 먼저 만들어 주세요"); return; }
+        const form = $("[data-fee-form]");
+        form.hidden = false;
+        renderFeeResults();
+        $("[data-fee-search]").focus();
+    }
+
+    async function addFee(index) {
+        const [cat, name, spec, price] = FEES.items[index];
+        // 같은 규격이 이미 있으면 수량만 늘리기
+        const same = getBulkyRows().find((row) => row.name === spec);
+        const { error } = same
+            ? await client.from("cleanup").update({ qty: same.qty + 1 }).eq("id", same.id)
+            : await client.from("cleanup").insert({ kind: "bulky", name: spec, detail: FEES.categories[cat] + " · " + name, price, created_by: state.me || null });
+        if (error) { handleError(error); return; }
+        showToast(spec + " 추가 · " + formatWon(price));
+        await loadAll();
+    }
+
+    async function changeQty(id, step) {
+        const row = state.cleanup.find((r) => r.id === id);
+        if (!row || row.qty + step < 1) return;
+        const { error } = await client.from("cleanup").update({ qty: row.qty + step }).eq("id", id);
+        if (error) { handleError(error); return; }
+        await loadAll();
+    }
+
+    async function toggleCleanupDone(id, done) {
+        const { error } = await client.from("cleanup").update({ done }).eq("id", id);
+        if (error) { handleError(error); return; }
+        await loadAll();
+    }
+
+    async function saveCleanup(form) {
+        const name = form.elements.name.value.trim();
+        if (!name) { showToast("무엇인지 적어 주세요"); return; }
+        const { error } = await client.from("cleanup").insert({ kind: form.dataset.cleanupForm, name, detail: form.elements.detail.value, created_by: state.me || null });
+        if (error) { handleError(error); return; }
+        form.elements.name.value = "";
+        showToast("추가했어요");
+        await loadAll();
+    }
+
+    async function copyBulky() {
+        const rows = getBulkyRows();
+        if (!rows.length) { showToast("복사할 대형폐기물이 없어요"); return; }
+        const lines = rows.map((row) => "- " + row.name + " × " + row.qty + " = " + formatWon(row.price * row.qty));
+        const text = "대형폐기물 목록\n" + lines.join("\n") + "\n합계 " + formatWon(getBulkyTotal());
+        try {
+            await navigator.clipboard.writeText(text);
+            showToast("목록을 복사했어요");
+        } catch (error) {
+            showToast("복사하지 못했어요. 이 브라우저에서는 직접 선택해 복사해 주세요");
+        }
+    }
+
     // ---------- 지우기 확인 ----------
     function renderConfirm() {
         return h("div", { class: "confirm" },
@@ -450,16 +650,17 @@ document.addEventListener("DOMContentLoaded", () => {
                 h("button", { type: "button", class: "btn btn-outline", "data-action": "cancel-delete" }, "아니요")));
     }
     function askDelete(kind, id) {
-        const source = kind === "item" ? state.items : state.events;
+        const source = { item: state.items, event: state.events, cleanup: state.cleanup }[kind];
         const row = source.find((r) => r.id === id);
         if (!row) return;
-        state.deleteTarget = { kind, id, label: kind === "item" ? row.name : row.title, photoPath: row.photo_path || null };
+        state.deleteTarget = { kind, id, label: row.title || row.name, photoPath: row.photo_path || null };
         renderAll();
     }
     async function confirmDelete() {
         const target = state.deleteTarget;
         state.deleteTarget = null;
-        const { error } = await client.from(target.kind === "item" ? "items" : "events").delete().eq("id", target.id);
+        const table = { item: "items", event: "events", cleanup: "cleanup" }[target.kind];
+        const { error } = await client.from(table).delete().eq("id", target.id);
         if (error) { handleError(error); renderAll(); return; }
         if (target.photoPath) await client.storage.from(PHOTO_BUCKET).remove([target.photoPath]);
         showToast("지웠어요");
@@ -472,6 +673,7 @@ document.addEventListener("DOMContentLoaded", () => {
         document.querySelectorAll("[data-write-only]").forEach((el) => { el.hidden = !client; });
         renderSchedule();
         renderItems();
+        renderCleanup();
     }
 
     // ---------- 이벤트 (위임) ----------
@@ -505,6 +707,20 @@ document.addEventListener("DOMContentLoaded", () => {
                 state.filter = state.filter === target.dataset.key && MEMBER_IDS.includes(target.dataset.key) ? "all" : target.dataset.key;
                 renderItems();
                 break;
+            case "cleanup-kind":
+                state.cleanupKind = target.dataset.key;
+                writeLocal("ourhome.cleanupKind", state.cleanupKind);
+                renderCleanup();
+                break;
+            case "open-fee-search": openFeeSearch(); break;
+            case "close-fee-search": $("[data-fee-form]").hidden = true; break;
+            case "fee-cat":
+                state.feeCat = Number(target.dataset.key);
+                renderFeeResults();
+                break;
+            case "add-fee": addFee(Number(target.dataset.index)); break;
+            case "cleanup-qty": changeQty(id, Number(target.dataset.step)); break;
+            case "copy-bulky": copyBulky(); break;
             case "ask-delete": askDelete(kind, id); break;
             case "confirm-delete": confirmDelete(); break;
             case "cancel-delete": state.deleteTarget = null; renderAll(); break;
@@ -519,9 +735,19 @@ document.addEventListener("DOMContentLoaded", () => {
         if (form.matches("[data-event-form]")) saveEvent(form);
         else if (form.matches("[data-item-form]")) saveItem(form);
         else if (form.matches("[data-names-form]")) saveNames(form);
+        else if (form.matches("[data-cleanup-form]")) saveCleanup(form);
+        else if (form.matches("[data-fee-form]")) renderFeeResults();
+    });
+
+    document.addEventListener("input", (event) => {
+        if (event.target.matches("[data-fee-search]")) renderFeeResults();
     });
 
     document.addEventListener("change", async (event) => {
+        if (event.target.matches("[data-cleanup-done]")) {
+            toggleCleanupDone(event.target.dataset.cleanupDone, event.target.checked);
+            return;
+        }
         if (!event.target.matches("[data-photo-input]")) return;
         const file = event.target.files && event.target.files[0];
         const preview = $("[data-photo-preview]");
@@ -536,7 +762,7 @@ document.addEventListener("DOMContentLoaded", () => {
     });
 
     // ---------- 시작 ----------
-    selectTab(location.hash === "#items" ? "items" : "schedule");
+    selectTab(location.hash.slice(1));
     renderAll();
     if (!client) {
         setNotice("Supabase 연결 설정이 아직 안 됐어요. resource/js/config.js 에 anon 키를 넣어 주세요.");

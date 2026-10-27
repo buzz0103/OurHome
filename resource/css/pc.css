@@ -116,6 +116,45 @@ body {color: #191f28; font-family: "Pretendard", -apple-system, BlinkMacSystemFo
 .goods_foot {display: flex; justify-content: flex-end; margin: -8px -8px -12px 0;}
 .confirm {display: flex; flex-direction: column; gap: 12px; padding: 16px; border-radius: 8px; font-size: 14px; line-height: 20px; background: #f2f4f6;}
 
+/* 정리 목록 */
+.fee {display: flex; flex-direction: column; gap: 4px; padding: 24px; border-radius: 12px; background: #ffffff;}
+.fee_label {color: #6b7684; font-size: 14px; line-height: 20px; font-weight: 600;}
+.fee_total {color: #1b64da; font-size: 28px; line-height: 38px; font-weight: 700; font-variant-numeric: tabular-nums;}
+.fee_meta {color: #4e5968; font-size: 14px; line-height: 20px;}
+.fee_source {color: #6b7684; font-size: 12px; line-height: 18px;}
+.fee_link {color: #1b64da; text-decoration: underline;}
+.notice_link {color: #1b64da; font-weight: 600; text-decoration: underline;}
+.cleanup {display: flex; flex-direction: column; gap: 16px;}
+.cleanup_actions {display: flex; flex-wrap: wrap; gap: 8px;}
+.cleanup_actions .btn-primary {flex: 1 1 160px;}
+.result {display: flex; flex-direction: column; max-height: 360px; overflow-y: auto; margin: -8px -12px 0;}
+.result_item {display: grid; grid-template-columns: 1fr auto 24px; gap: 12px; align-items: center; width: 100%; padding: 10px 12px; border: 0; border-radius: 8px; text-align: left; background: transparent;}
+.result_item:hover {background: #e8f3ff;}
+.result_text {display: flex; flex-direction: column; min-width: 0;}
+.result_spec {font-size: 15px; line-height: 22px; font-weight: 600; overflow-wrap: anywhere;}
+.result_cat {color: #6b7684; font-size: 12px; line-height: 16px;}
+.result_price {font-size: 15px; font-weight: 600; font-variant-numeric: tabular-nums;}
+.result_add {color: #1b64da; font-size: 20px; font-weight: 700; text-align: center;}
+.result_hint {margin-top: -8px; color: #6b7684; font-size: 13px; line-height: 18px;}
+.todo {padding: 0 24px; border-radius: 12px; background: #ffffff;}
+.todo_item {display: grid; grid-template-columns: 24px 1fr; gap: 12px; align-items: start; padding: 20px 0; border-bottom: 1px solid #e5e8eb;}
+.todo_item-done .todo_title {color: #8b95a1; text-decoration: line-through;}
+.todo_item:last-child {border-bottom: 0;}
+.todo_check {width: 22px; height: 22px; margin-top: 1px; accent-color: #3182f6;}
+.todo_body {display: flex; flex-direction: column; gap: 6px; min-width: 0;}
+.todo_title {font-size: 17px; line-height: 24px; font-weight: 700; overflow-wrap: anywhere; cursor: pointer;}
+.todo_meta {display: flex; flex-wrap: wrap; align-items: center; gap: 8px; color: #6b7684; font-size: 13px; line-height: 18px;}
+.todo_tip {color: #b54708; font-size: 13px; line-height: 18px;}
+.todo_link {color: inherit; font-weight: 600; text-decoration: underline;}
+.todo_actions {display: flex; flex-wrap: wrap; align-items: center; gap: 12px; margin-left: -8px; padding-left: 8px;}
+.todo_price {margin-left: auto; font-size: 16px; font-variant-numeric: tabular-nums;}
+.todo_total {display: flex; justify-content: space-between; padding: 20px 0; font-size: 17px; font-weight: 700; font-variant-numeric: tabular-nums;}
+.qty {display: inline-flex; align-items: center; border: 1px solid #e5e8eb; border-radius: 8px;}
+.qty_btn {width: 36px; height: 36px; border: 0; font-size: 18px; font-weight: 700; background: transparent;}
+.qty_btn:hover {background: #f2f4f6;}
+.qty_btn:disabled {color: #c4c9d0; cursor: default; background: transparent;}
+.qty_value {min-width: 36px; font-size: 14px; font-weight: 600; text-align: center; font-variant-numeric: tabular-nums;}
+
 /* 나 고르기 창 */
 .modal {position: fixed; inset: 0; z-index: 20; display: flex; align-items: center; justify-content: center; padding: 16px; background: rgba(0, 0, 0, 0.5);}
 .modal_dialog {display: flex; flex-direction: column; gap: 16px; width: 100%; max-width: 400px; max-height: 100%; overflow-y: auto; padding: 24px; border-radius: 16px; background: #ffffff;}
@@ -128,4 +167,4 @@ body {color: #191f28; font-family: "Pretendard", -apple-system, BlinkMacSystemFo
 .toast {position: fixed; bottom: 24px; left: 50%; z-index: 30; max-width: calc(100% - 32px); padding: 12px 20px; border-radius: 12px; color: #ffffff; font-size: 14px; line-height: 20px; text-align: center; background: #191f28; transform: translateX(-50%);}
 
 /* 숨김 (display 지정한 블록보다 우선) */
-.panel[hidden], .form[hidden], .modal[hidden], .notice[hidden], .toast[hidden], .field_preview[hidden], .btn[hidden], .link[hidden] {display: none;}
+.panel[hidden], .form[hidden], .modal[hidden], .notice[hidden], .toast[hidden], .field_preview[hidden], .btn[hidden], .link[hidden], .cleanup[hidden] {display: none;}
