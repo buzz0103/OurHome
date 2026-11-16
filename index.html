@@ -84,9 +84,10 @@
                         <input class="field_input" id="itemLocation" name="location" placeholder="예: 거실, 2층 창고">
                     </div>
                     <div class="field">
-                        <label class="field_label" for="itemPhoto">사진 (선택)</label>
-                        <input class="field_input field_input-file" id="itemPhoto" name="photo" type="file" accept="image/*" data-photo-input>
-                        <img class="field_preview" src="data:," alt="올릴 사진 미리보기" width="320" height="200" data-photo-preview hidden>
+                        <label class="field_label" for="itemPhoto">사진 (선택, 여러 장 가능)</label>
+                        <input class="field_input field_input-file" id="itemPhoto" name="photo" type="file" accept="image/*" multiple data-photo-input>
+                        <p class="field_hint" data-photo-hint>최대 5장까지 한 번에 고를 수 있어요</p>
+                        <ul class="photo_picks" data-photo-list hidden></ul>
                     </div>
                     <div class="form_actions">
                         <button type="submit" class="btn btn-primary" data-item-submit>올리기</button>
