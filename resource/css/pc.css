@@ -88,7 +88,14 @@ body {color: #191f28; font-family: "Pretendard", -apple-system, BlinkMacSystemFo
 .field_input:focus {border-color: #3182f6;}
 .field_input-area {height: auto; min-height: 96px; padding: 8px 16px; resize: vertical;}
 .field_input-file {height: auto; padding: 8px 16px;}
-.field_preview {display: block; width: 100%; max-width: 320px; height: auto; max-height: 200px; border-radius: 8px; object-fit: cover;}
+.field_hint {margin-top: 6px; color: #6b7684; font-size: 13px; line-height: 18px;}
+.photo_picks {display: grid; grid-template-columns: repeat(auto-fill, minmax(84px, 1fr)); gap: 8px; margin-top: 10px;}
+.photo_pick {position: relative; aspect-ratio: 1 / 1; max-width: 100%; overflow: hidden; border-radius: 8px; background: #eef0f3;}
+.photo_pick_img {display: block; width: 100%; height: 100%; object-fit: cover;}
+.photo_pick_cover {position: absolute; left: 6px; bottom: 6px; padding: 1px 6px; border-radius: 4px; color: #ffffff; font-size: 11px; line-height: 16px; font-weight: 700; background: #3182f6;}
+.photo_pick_remove {position: absolute; top: 4px; right: 4px; width: 28px; height: 28px; padding: 0; border: 0; border-radius: 50%; color: #ffffff; font-size: 13px; line-height: 28px; text-align: center; background: rgba(25, 31, 40, 0.7); cursor: pointer;}
+.photo_pick_remove:hover {background: #d22030;}
+.photo_pick_remove:focus-visible {outline: 2px solid #1b64da; outline-offset: 1px;}
 
 /* 물건 */
 .summary {display: grid; grid-template-columns: repeat(4, 1fr); gap: 8px;}
@@ -106,6 +113,8 @@ body {color: #191f28; font-family: "Pretendard", -apple-system, BlinkMacSystemFo
 .goods_item-mine .goods_media {box-shadow: 0 0 0 3px #3182f6;}
 .goods_media {position: relative; aspect-ratio: 1 / 1; max-width: 100%; overflow: hidden; border-radius: 12px; background: #eef0f3;}
 .goods_thumb {display: block; width: 100%; height: 100%; padding: 0; border: 0; overflow: hidden; background: none; cursor: zoom-in;}
+.goods_thumb {position: relative;}
+.goods_count {position: absolute; right: 8px; bottom: 8px; padding: 2px 8px; border-radius: 999px; color: #ffffff; font-size: 12px; line-height: 18px; font-weight: 700; background: rgba(25, 31, 40, 0.7); pointer-events: none;}
 .goods_thumb-empty {display: flex; align-items: center; justify-content: center; color: #6b7684; font-size: 14px; font-weight: 600; cursor: pointer;}
 .goods_thumb-empty:hover {color: #1b64da; background: #e8f3ff;}
 .goods_no {position: absolute; top: 8px; right: 8px; min-width: 30px; padding: 2px 6px; border-radius: 6px; color: #191f28; font-size: 12px; line-height: 18px; font-weight: 700; text-align: center; font-variant-numeric: tabular-nums; background: rgba(255, 255, 255, 0.92); pointer-events: none;}
@@ -115,6 +124,11 @@ body {color: #191f28; font-family: "Pretendard", -apple-system, BlinkMacSystemFo
 .photo_view_name {color: #ffffff; font-size: 15px; font-weight: 600; text-align: center;}
 .photo_view_close {position: absolute; top: max(12px, env(safe-area-inset-top, 0px)); right: max(12px, env(safe-area-inset-right, 0px)); min-height: 40px; padding: 8px 14px; border: 1px solid rgba(255, 255, 255, 0.4); border-radius: 8px; color: #ffffff; font-size: 14px; font-weight: 600; background: rgba(255, 255, 255, 0.08); cursor: pointer;}
 .photo_view_close:focus-visible {outline: 2px solid #ffffff; outline-offset: 2px;}
+.photo_view_nav {position: absolute; top: 50%; width: 44px; height: 64px; margin-top: -32px; padding: 0; border: 0; border-radius: 8px; color: #ffffff; font-size: 36px; line-height: 60px; background: rgba(255, 255, 255, 0.12); cursor: pointer;}
+.photo_view_nav:hover {background: rgba(255, 255, 255, 0.24);}
+.photo_view_nav:focus-visible {outline: 2px solid #ffffff; outline-offset: 2px;}
+.photo_view_nav-prev {left: max(8px, env(safe-area-inset-left, 0px));}
+.photo_view_nav-next {right: max(8px, env(safe-area-inset-right, 0px));}
 .goods_img {display: block; width: 100%; height: 100%; object-fit: cover; transition: transform 0.2s ease;}
 .goods_item:hover .goods_img {transform: scale(1.03);}
 .goods_body {display: flex; flex-direction: column; gap: 6px; min-width: 0;}
@@ -191,4 +205,4 @@ body {color: #191f28; font-family: "Pretendard", -apple-system, BlinkMacSystemFo
 .toast {position: fixed; bottom: 24px; left: 50%; z-index: 30; max-width: calc(100% - 32px); padding: 12px 20px; border-radius: 12px; color: #ffffff; font-size: 14px; line-height: 20px; text-align: center; background: #191f28; transform: translateX(-50%);}
 
 /* 숨김 (display 지정한 블록보다 우선) */
-.panel[hidden], .form[hidden], .modal[hidden], .notice[hidden], .toast[hidden], .field_preview[hidden], .btn[hidden], .link[hidden], .cleanup[hidden] {display: none;}
+.panel[hidden], .form[hidden], .modal[hidden], .notice[hidden], .toast[hidden], .photo_picks[hidden], .btn[hidden], .link[hidden], .cleanup[hidden] {display: none;}
