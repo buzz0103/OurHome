@@ -527,7 +527,18 @@ document.addEventListener("DOMContentLoaded", () => {
         form.scrollIntoView({ behavior: "smooth", block: "start" });
         form.elements.name.focus({ preventScroll: true });
     }
+    // 예전 화면(HTML)이 캐시에 남아 있어도 사진 칸이 동작하도록 필요한 요소를 채워 넣기
+    function ensurePhotoUI() {
+        const input = $("[data-photo-input]");
+        if (!input) return;
+        input.multiple = true;
+        const old = $("[data-photo-preview]");
+        if (old) old.remove();
+        if (!$("[data-photo-hint]")) input.after(h("p", { class: "field_hint", "data-photo-hint": true }));
+        if (!$("[data-photo-list]")) $("[data-photo-hint]").after(h("ul", { class: "photo_picks", "data-photo-list": true, hidden: true }));
+    }
     function renderFormPhotos() {
+        ensurePhotoUI();
         const list = $("[data-photo-list]");
         list.hidden = !state.formPhotos.length;
         list.replaceChildren(...state.formPhotos.map((photo, i) => h("li", { class: "photo_pick" },
