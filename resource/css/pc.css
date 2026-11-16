@@ -103,7 +103,13 @@ body {color: #191f28; font-family: "Pretendard", -apple-system, BlinkMacSystemFo
 .goods {display: flex; flex-direction: column; gap: 16px;}
 .goods_item {display: flex; flex-direction: column; overflow: hidden; border: 2px solid transparent; border-radius: 12px; background: #ffffff;}
 .goods_item-mine {border-color: #3182f6;}
-.goods_thumb {overflow: hidden;}
+.goods_thumb {display: block; width: 100%; padding: 0; border: 0; overflow: hidden; background: none; cursor: zoom-in;}
+.goods_thumb:focus-visible {outline: 2px solid #1b64da; outline-offset: -2px;}
+.photo_view {position: fixed; inset: 0; z-index: 100; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 12px; padding: max(56px, env(safe-area-inset-top, 0px)) max(16px, env(safe-area-inset-right, 0px)) max(24px, env(safe-area-inset-bottom, 0px)) max(16px, env(safe-area-inset-left, 0px)); background: rgba(10, 12, 16, 0.92); cursor: zoom-out;}
+.photo_view_img {display: block; max-width: 100%; max-height: calc(100% - 40px); object-fit: contain; border-radius: 6px;}
+.photo_view_name {color: #ffffff; font-size: 15px; font-weight: 600; text-align: center;}
+.photo_view_close {position: absolute; top: max(12px, env(safe-area-inset-top, 0px)); right: max(12px, env(safe-area-inset-right, 0px)); min-height: 40px; padding: 8px 14px; border: 1px solid rgba(255, 255, 255, 0.4); border-radius: 8px; color: #ffffff; font-size: 14px; font-weight: 600; background: rgba(255, 255, 255, 0.08); cursor: pointer;}
+.photo_view_close:focus-visible {outline: 2px solid #ffffff; outline-offset: 2px;}
 .goods_img {display: block; width: 100%; height: 220px; object-fit: cover; background: #f2f4f6; transition: transform 0.2s ease;}
 .goods_item:hover .goods_img {transform: scale(1.03);}
 .goods_body {display: flex; flex-direction: column; gap: 12px; padding: 20px 24px;}
@@ -113,7 +119,7 @@ body {color: #191f28; font-family: "Pretendard", -apple-system, BlinkMacSystemFo
 .goods_status-free {color: #1b64da; background: #e8f3ff;}
 .goods_status-other {color: #4e5968; background: #f2f4f6;}
 .goods_status-mine {color: #ffffff; background: #3182f6;}
-.goods_foot {display: flex; justify-content: flex-end; margin: -8px -8px -12px 0;}
+.goods_foot {display: flex; flex-wrap: wrap; justify-content: flex-end; gap: 4px; margin: -8px -8px -12px 0;}
 .confirm {display: flex; flex-direction: column; gap: 12px; padding: 16px; border-radius: 8px; font-size: 14px; line-height: 20px; background: #f2f4f6;}
 
 /* 정리 목록 */
