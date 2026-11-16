@@ -21,6 +21,7 @@ document.addEventListener("DOMContentLoaded", () => {
         filter: "all",
         deleteTarget: null,
         editingEventId: null,
+        editingItemId: null,
         pendingPhoto: null,
         loaded: false,
     };
@@ -374,7 +375,7 @@ document.addEventListener("DOMContentLoaded", () => {
             status = h("span", { class: "goods_status goods_status-other" }, nameOf(owner) + "님이 가져가요");
         }
         return h("li", { class: "goods_item" + (mine ? " goods_item-mine" : "") },
-            item.photo_url ? h("div", { class: "goods_thumb" },
+            item.photo_url ? h("button", { type: "button", class: "goods_thumb", "data-action": "zoom-photo", "data-id": item.id, "aria-label": item.name + " 사진 크게 보기" },
                 h("img", { class: "goods_img", src: item.photo_url, alt: item.name, width: "640", height: "220", loading: index < 2 ? "eager" : "lazy" })) : null,
             h("div", { class: "goods_body" },
                 h("div", { class: "goods_name" }, item.name),
@@ -382,9 +383,29 @@ document.addEventListener("DOMContentLoaded", () => {
                 status,
                 action,
                 h("div", { class: "goods_foot" },
+                    h("button", { type: "button", class: "link", "data-action": "edit-item", "data-id": item.id }, item.photo_url ? "고치기" : "사진 넣기 · 고치기"),
                     h("button", { type: "button", class: "link link-danger", "data-action": "ask-delete", "data-kind": "item", "data-id": item.id }, "목록에서 지우기")),
                 isDeleting ? renderConfirm() : null)
         );
+    }
+    // 사진 크게 보기 (아무 데나 누르거나 Esc로 닫기)
+    function openPhoto(id) {
+        const item = state.items.find((row) => row.id === id);
+        if (!item || !item.photo_url) return;
+        closePhoto();
+        const view = h("div", { class: "photo_view", role: "dialog", "aria-modal": "true", "aria-label": item.name + " 사진", "data-action": "close-photo" },
+            h("img", { class: "photo_view_img", src: item.photo_url, alt: item.name }),
+            h("div", { class: "photo_view_name" }, item.name),
+            h("button", { type: "button", class: "photo_view_close", "data-action": "close-photo" }, "닫기"));
+        document.body.append(view);
+        document.body.style.overflow = "hidden";
+        view.querySelector(".photo_view_close").focus();
+    }
+    function closePhoto() {
+        const view = document.querySelector(".photo_view");
+        if (!view) return;
+        view.remove();
+        document.body.style.overflow = "";
     }
     async function pickItem(id, take) {
         if (take && !state.me) {
@@ -426,11 +447,19 @@ document.addEventListener("DOMContentLoaded", () => {
             img.src = url;
         });
     }
-    function openItemForm() {
+    function openItemForm(id) {
         const form = $("[data-item-form]");
+        const item = state.items.find((row) => row.id === id) || {};
         form.reset();
+        state.editingItemId = id || null;
         state.pendingPhoto = null;
-        $("[data-photo-preview]").hidden = true;
+        $("[data-item-form-title]").textContent = id ? "물건 고치기" : "물건 올리기";
+        $("[data-item-submit]").textContent = id ? "저장하기" : "올리기";
+        form.elements.name.value = item.name || "";
+        form.elements.location.value = item.location || "";
+        const preview = $("[data-photo-preview]");
+        preview.hidden = !item.photo_url;
+        if (item.photo_url) preview.src = item.photo_url;
         form.hidden = false;
         form.scrollIntoView({ behavior: "smooth", block: "start" });
         form.elements.name.focus({ preventScroll: true });
@@ -441,6 +470,8 @@ document.addEventListener("DOMContentLoaded", () => {
         const submit = $("[data-item-submit]");
         submit.disabled = true;
         submit.textContent = "올리는 중…";
+        const editingId = state.editingItemId;
+        const before = state.items.find((row) => row.id === editingId) || {};
         try {
             const row = { name, location: form.elements.location.value.trim() || null };
             if (state.pendingPhoto) {
@@ -450,16 +481,23 @@ document.addEventListener("DOMContentLoaded", () => {
                 row.photo_path = path;
                 row.photo_url = client.storage.from(PHOTO_BUCKET).getPublicUrl(path).data.publicUrl;
             }
-            const { error } = await client.from("items").insert(row);
+            const { error } = editingId
+                ? await client.from("items").update(row).eq("id", editingId)
+                : await client.from("items").insert(row);
             if (error) throw error;
+            // 사진을 바꿨으면 예전 사진 파일은 지우기
+            if (editingId && row.photo_path && before.photo_path) {
+                await client.storage.from(PHOTO_BUCKET).remove([before.photo_path]);
+            }
             form.hidden = true;
-            showToast("물건을 올렸어요");
+            state.editingItemId = null;
+            showToast(editingId ? "물건을 고쳤어요" : "물건을 올렸어요");
             await loadAll();
         } catch (error) {
             handleError(error);
         } finally {
             submit.disabled = false;
-            submit.textContent = "올리기";
+            submit.textContent = state.editingItemId ? "저장하기" : "올리기";
         }
     }
 
@@ -697,8 +735,11 @@ document.addEventListener("DOMContentLoaded", () => {
             case "add-event": openEventForm(null); break;
             case "edit-event": openEventForm(id); break;
             case "cancel-event": $("[data-event-form]").hidden = true; break;
-            case "add-item": openItemForm(); break;
+            case "add-item": openItemForm(null); break;
+            case "edit-item": openItemForm(id); break;
             case "cancel-item": $("[data-item-form]").hidden = true; break;
+            case "zoom-photo": openPhoto(id); break;
+            case "close-photo": closePhoto(); break;
             case "done": setDone(id, true); break;
             case "undone": setDone(id, false); break;
             case "pick": pickItem(id, true); break;
@@ -758,6 +799,7 @@ document.addEventListener("DOMContentLoaded", () => {
     });
 
     document.addEventListener("keydown", (event) => {
+        if (event.key === "Escape" && document.querySelector(".photo_view")) { closePhoto(); return; }
         if (event.key === "Escape" && !$("[data-who]").hidden && state.me) closeWho();
     });
 
