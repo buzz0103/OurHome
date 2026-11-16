@@ -23,6 +23,15 @@ alter table public.events add column if not exists done_at timestamptz;
 alter table public.events add column if not exists done_by text references public.members (id);
 ```
 
+## 버림·수거 추가 (이미 설정을 마친 경우 한 번만)
+
+물건 나누기에서 아무도 안 가져가는 물건을 "버림" 또는 "수거"로 표시할 수 있어요. Supabase SQL Editor에서 아래 두 줄을 한 번 실행해 주세요.
+
+```sql
+alter table public.items add column if not exists disposal text check (disposal in ('trash', 'pickup'));
+alter table public.items add column if not exists disposal_by text references public.members (id);
+```
+
 ## 구조
 
 ```
