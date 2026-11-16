@@ -100,26 +100,44 @@ body {color: #191f28; font-family: "Pretendard", -apple-system, BlinkMacSystemFo
 .filter {display: flex; flex-wrap: wrap; gap: 8px;}
 .filter_item {height: 36px; padding: 0 12px; border: 1px solid #cccccc; border-radius: 8px; color: #4e5968; font-size: 14px; font-weight: 600; background: #ffffff;}
 .filter_item-active {border-color: #191f28; color: #ffffff; background: #191f28;}
-.goods {display: flex; flex-direction: column; gap: 16px;}
-.goods_item {display: flex; flex-direction: column; overflow: hidden; border: 2px solid transparent; border-radius: 12px; background: #ffffff;}
-.goods_item-mine {border-color: #3182f6;}
-.goods_thumb {display: block; width: 100%; padding: 0; border: 0; overflow: hidden; background: none; cursor: zoom-in;}
+.goods {display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 24px 12px;}
+.goods > .empty {grid-column: 1 / -1;}
+.goods_item {display: flex; flex-direction: column; gap: 10px; min-width: 0;}
+.goods_item-mine .goods_media {box-shadow: 0 0 0 3px #3182f6;}
+.goods_media {position: relative; aspect-ratio: 1 / 1; max-width: 100%; overflow: hidden; border-radius: 12px; background: #eef0f3;}
+.goods_thumb {display: block; width: 100%; height: 100%; padding: 0; border: 0; overflow: hidden; background: none; cursor: zoom-in;}
+.goods_thumb-empty {display: flex; align-items: center; justify-content: center; color: #6b7684; font-size: 14px; font-weight: 600; cursor: pointer;}
+.goods_thumb-empty:hover {color: #1b64da; background: #e8f3ff;}
+.goods_no {position: absolute; top: 8px; right: 8px; min-width: 30px; padding: 2px 6px; border-radius: 6px; color: #191f28; font-size: 12px; line-height: 18px; font-weight: 700; text-align: center; font-variant-numeric: tabular-nums; background: rgba(255, 255, 255, 0.92); pointer-events: none;}
 .goods_thumb:focus-visible {outline: 2px solid #1b64da; outline-offset: -2px;}
 .photo_view {position: fixed; inset: 0; z-index: 100; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 12px; padding: max(56px, env(safe-area-inset-top, 0px)) max(16px, env(safe-area-inset-right, 0px)) max(24px, env(safe-area-inset-bottom, 0px)) max(16px, env(safe-area-inset-left, 0px)); background: rgba(10, 12, 16, 0.92); cursor: zoom-out;}
 .photo_view_img {display: block; max-width: 100%; max-height: calc(100% - 40px); object-fit: contain; border-radius: 6px;}
 .photo_view_name {color: #ffffff; font-size: 15px; font-weight: 600; text-align: center;}
 .photo_view_close {position: absolute; top: max(12px, env(safe-area-inset-top, 0px)); right: max(12px, env(safe-area-inset-right, 0px)); min-height: 40px; padding: 8px 14px; border: 1px solid rgba(255, 255, 255, 0.4); border-radius: 8px; color: #ffffff; font-size: 14px; font-weight: 600; background: rgba(255, 255, 255, 0.08); cursor: pointer;}
 .photo_view_close:focus-visible {outline: 2px solid #ffffff; outline-offset: 2px;}
-.goods_img {display: block; width: 100%; height: 220px; object-fit: cover; background: #f2f4f6; transition: transform 0.2s ease;}
+.goods_img {display: block; width: 100%; height: 100%; object-fit: cover; transition: transform 0.2s ease;}
 .goods_item:hover .goods_img {transform: scale(1.03);}
-.goods_body {display: flex; flex-direction: column; gap: 12px; padding: 20px 24px;}
-.goods_name {font-size: 17px; line-height: 24px; font-weight: 700; overflow-wrap: anywhere;}
-.goods_where {margin-top: -8px; color: #4e5968; font-size: 14px; line-height: 20px;}
-.goods_status {align-self: flex-start; padding: 4px 8px; border-radius: 6px; font-size: 14px; line-height: 20px; font-weight: 600;}
+.goods_body {display: flex; flex-direction: column; gap: 6px; min-width: 0;}
+.goods_name {font-size: 15px; line-height: 21px; font-weight: 700; overflow-wrap: anywhere;}
+.goods_where {color: #6b7684; font-size: 13px; line-height: 18px; overflow-wrap: anywhere; display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden;}
+.goods_status {align-self: flex-start; padding: 2px 6px; border-radius: 5px; font-size: 12px; line-height: 18px; font-weight: 600;}
+.goods_body .btn {height: 40px; margin-top: 4px; padding: 0 8px; font-size: 14px;}
+.goods_body .confirm {padding: 12px; font-size: 13px;}
+.goods_body .confirm .form_actions {flex-direction: column;}
+.goods_body .confirm .btn {flex: none; width: 100%;}
 .goods_status-free {color: #1b64da; background: #e8f3ff;}
 .goods_status-other {color: #4e5968; background: #f2f4f6;}
 .goods_status-mine {color: #ffffff; background: #3182f6;}
-.goods_foot {display: flex; flex-wrap: wrap; justify-content: flex-end; gap: 4px; margin: -8px -8px -12px 0;}
+.goods_status-trash {color: #b42318; background: #fdecea;}
+.goods_status-pickup {color: #9a5b00; background: #fff4de;}
+.goods_item-out .goods_img {filter: grayscale(0.7); opacity: 0.75;}
+.goods_item-out .goods_name {color: #6b7684;}
+.goods_choice {display: flex; flex-direction: column; gap: 6px; margin-top: 4px;}
+.goods_choice .btn {margin-top: 0;}
+.goods_choice_row {display: grid; grid-template-columns: 1fr 1fr; gap: 6px;}
+.goods_choice_row .btn {height: 36px; font-size: 13px;}
+.goods_foot {display: flex; flex-wrap: wrap; gap: 0; margin: -4px 0 0 -8px;}
+.goods_foot .link {min-height: 36px; padding: 6px 8px; font-size: 13px;}
 .confirm {display: flex; flex-direction: column; gap: 12px; padding: 16px; border-radius: 8px; font-size: 14px; line-height: 20px; background: #f2f4f6;}
 
 /* 정리 목록 */
