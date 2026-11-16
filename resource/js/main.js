@@ -321,7 +321,9 @@ document.addEventListener("DOMContentLoaded", () => {
         const counts = Object.fromEntries(MEMBER_IDS.map((id) => [id, 0]));
         let freeCount = 0;
         const disposalCounts = { trash: 0, pickup: 0 };
+        let takenCount = 0;
         state.items.forEach((item) => {
+            if (MEMBER_IDS.includes(item.picked_by) && item.done_at) takenCount += 1;
             if (counts[item.picked_by] !== undefined) counts[item.picked_by] += 1;
             else if (DISPOSALS[item.disposal]) disposalCounts[item.disposal] += 1;
             else freeCount += 1;
@@ -336,7 +338,7 @@ document.addEventListener("DOMContentLoaded", () => {
         }, h("span", { class: "summary_count" }, counts[id] + "개"), h("span", { class: "summary_name" }, nameOf(id)))));
 
         const filters = [["all", "전체 " + state.items.length], ["free", "아직 안 정함 " + freeCount],
-            ["trash", "버림 " + disposalCounts.trash], ["pickup", "수거 " + disposalCounts.pickup]];
+            ["trash", "버림 " + disposalCounts.trash], ["pickup", "수거 " + disposalCounts.pickup], ["taken", "가져감 " + takenCount]];
         if (state.me) filters.push([state.me, "내가 고른 것 " + counts[state.me]]);
         $("[data-filter]").replaceChildren(...filters.map(([key, label]) => h("button", {
             type: "button",
@@ -359,13 +361,16 @@ document.addEventListener("DOMContentLoaded", () => {
             if (state.filter === "all") return true;
             if (state.filter === "free") return !MEMBER_IDS.includes(item.picked_by) && !DISPOSALS[item.disposal];
             if (DISPOSALS[state.filter]) return !MEMBER_IDS.includes(item.picked_by) && item.disposal === state.filter;
+            if (state.filter === "taken") return MEMBER_IDS.includes(item.picked_by) && Boolean(item.done_at);
             return item.picked_by === state.filter;
         });
         if (!shown.length) {
             list.replaceChildren(h("li", { class: "empty" }, "여기에 해당하는 물건이 없어요."));
             return;
         }
-        list.replaceChildren(...shown.map(renderItem));
+        // 가져갔거나 처리가 끝난 물건은 맨 뒤로
+        const ordered = shown.filter((item) => !item.done_at).concat(shown.filter((item) => item.done_at));
+        list.replaceChildren(...ordered.map(renderItem));
     }
     // 사진 목록 (예전 한 장짜리 물건도 같이 처리)
     function getPhotos(item) {
@@ -380,9 +385,20 @@ document.addEventListener("DOMContentLoaded", () => {
         let status;
         let action = null;
         const disposal = !owner && DISPOSALS[item.disposal] ? item.disposal : null;
-        if (disposal) {
+        const done = Boolean(item.done_at) && Boolean(owner || disposal);
+        const doneNote = done ? " · " + (item.done_by ? nameOf(item.done_by) + " · " : "") + formatShortDate(item.done_at) : "";
+        const undoDone = h("button", { type: "button", class: "btn btn-outline", "data-action": "item-done", "data-key": "", "data-id": item.id }, "되돌리기");
+        if (disposal && done) {
+            status = h("span", { class: "goods_status goods_status-done" }, DISPOSALS[disposal] + " 완료" + doneNote);
+            action = undoDone;
+        } else if (disposal) {
             status = h("span", { class: "goods_status goods_status-" + disposal }, DISPOSALS[disposal] + (item.disposal_by ? " · " + nameOf(item.disposal_by) : ""));
-            action = h("button", { type: "button", class: "btn btn-secondary", "data-action": "dispose", "data-key": "", "data-id": item.id }, "되돌리기");
+            action = h("div", { class: "goods_choice_row" },
+                h("button", { type: "button", class: "btn btn-primary", "data-action": "item-done", "data-key": "1", "data-id": item.id }, "처리 완료"),
+                h("button", { type: "button", class: "btn btn-outline", "data-action": "dispose", "data-key": "", "data-id": item.id }, "되돌리기"));
+        } else if (owner && done) {
+            status = h("span", { class: "goods_status goods_status-done" }, "가져감 · " + nameOf(owner) + " · " + formatShortDate(item.done_at));
+            action = mine ? undoDone : null;
         } else if (!owner) {
             status = h("span", { class: "goods_status goods_status-free" }, "아직 안 정함");
             action = h("div", { class: "goods_choice" },
@@ -392,11 +408,13 @@ document.addEventListener("DOMContentLoaded", () => {
                     h("button", { type: "button", class: "btn btn-outline", "data-action": "dispose", "data-key": "pickup", "data-id": item.id }, "수거")));
         } else if (mine) {
             status = h("span", { class: "goods_status goods_status-mine" }, "내가 가져가요");
-            action = h("button", { type: "button", class: "btn btn-secondary", "data-action": "unpick", "data-id": item.id }, "취소하기");
+            action = h("div", { class: "goods_choice_row" },
+                h("button", { type: "button", class: "btn btn-primary", "data-action": "item-done", "data-key": "1", "data-id": item.id }, "가져갔어요"),
+                h("button", { type: "button", class: "btn btn-outline", "data-action": "unpick", "data-id": item.id }, "취소하기"));
         } else {
             status = h("span", { class: "goods_status goods_status-other" }, nameOf(owner) + "님이 가져가요");
         }
-        return h("li", { class: "goods_item" + (mine ? " goods_item-mine" : "") + (disposal ? " goods_item-out" : "") },
+        return h("li", { class: "goods_item" + (mine && !done ? " goods_item-mine" : "") + (done ? " goods_item-done" : "") },
             h("div", { class: "goods_media" },
                 photos.length
                     ? h("button", { type: "button", class: "goods_thumb", "data-action": "zoom-photo", "data-id": item.id, "aria-label": item.name + " 사진 " + photos.length + "장 크게 보기" },
@@ -453,11 +471,29 @@ document.addEventListener("DOMContentLoaded", () => {
         view.remove();
         document.body.style.overflow = "";
     }
+    function formatShortDate(iso) {
+        const d = new Date(iso);
+        return (d.getMonth() + 1) + "/" + d.getDate();
+    }
+    // 가져갔어요 / 버림·수거 했어요 (done이 false면 되돌리기)
+    async function setItemDone(id, done) {
+        const row = done ? { done_at: new Date().toISOString(), done_by: state.me || null } : { done_at: null, done_by: null };
+        const { error } = await client.from("items").update(row).eq("id", id);
+        if (error) {
+            console.error(error);
+            showToast(/done_/.test(error.message || "")
+                ? "완료 기록 칸이 아직 없어요. README의 '가져감 표시 추가'를 먼저 실행해 주세요."
+                : "저장하지 못했어요. 인터넷 연결을 확인하고 다시 눌러 주세요.");
+            return;
+        }
+        await loadAll();
+        showToast(done ? "완료로 표시했어요" : "되돌렸어요");
+    }
     // 버림·수거로 표시하거나 되돌리기 (key가 비어 있으면 되돌리기)
     async function disposeItem(id, key) {
         const row = key
             ? { disposal: key, disposal_by: state.me || null }
-            : { disposal: null, disposal_by: null };
+            : { disposal: null, disposal_by: null, done_at: null, done_by: null };
         let query = client.from("items").update(row).eq("id", id);
         if (key) query = query.is("picked_by", null);
         const { data, error } = await query.select("id");
@@ -857,6 +893,7 @@ document.addEventListener("DOMContentLoaded", () => {
             case "undone": setDone(id, false); break;
             case "pick": pickItem(id, true); break;
             case "dispose": disposeItem(id, target.dataset.key); break;
+            case "item-done": setItemDone(id, Boolean(target.dataset.key)); break;
             case "unpick": pickItem(id, false); break;
             case "filter":
                 state.filter = state.filter === target.dataset.key && MEMBER_IDS.includes(target.dataset.key) ? "all" : target.dataset.key;
