@@ -8,8 +8,6 @@
     .form-plain {padding: 0;}
     .form_row {grid-template-columns: 1fr;}
     .modal_dialog {padding: 20px;}
-    .goods_img {height: 200px;}
-    .goods_body {padding: 16px 20px;}
     .fee {padding: 20px;}
     .fee_total {font-size: 24px; line-height: 32px;}
     .todo {padding: 0 16px;}
