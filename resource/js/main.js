@@ -393,8 +393,7 @@ document.addEventListener("DOMContentLoaded", () => {
                 item.photo_url
                     ? h("button", { type: "button", class: "goods_thumb", "data-action": "zoom-photo", "data-id": item.id, "aria-label": item.name + " 사진 크게 보기" },
                         h("img", { class: "goods_img", src: item.photo_url, alt: item.name, width: "400", height: "400", loading: index < 4 ? "eager" : "lazy" }))
-                    : h("button", { type: "button", class: "goods_thumb goods_thumb-empty", "data-action": "edit-item", "data-id": item.id }, "+ 사진 넣기"),
-                h("span", { class: "goods_no" }, String(index + 1).padStart(2, "0"))),
+                    : h("button", { type: "button", class: "goods_thumb goods_thumb-empty", "data-action": "edit-item", "data-id": item.id }, "+ 사진 넣기")),
             h("div", { class: "goods_body" },
                 h("div", { class: "goods_name" }, item.name),
                 item.location ? h("div", { class: "goods_where" }, item.location) : null,
