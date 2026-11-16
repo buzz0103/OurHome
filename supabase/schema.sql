@@ -44,6 +44,10 @@ alter table public.items add column if not exists disposal_by text references pu
 -- 물건 사진 여러 장 ([{ url, path }, ...]; 첫 장은 photo_url에도 저장)
 alter table public.items add column if not exists photos jsonb not null default '[]'::jsonb;
 
+-- 실제로 가져갔거나 버림·수거 처리가 끝난 시각과 누른 사람
+alter table public.items add column if not exists done_at timestamptz;
+alter table public.items add column if not exists done_by text references public.members (id);
+
 -- 접근 권한: 링크를 아는 사람은 누구나 읽고 쓸 수 있음 (로그인 없음)
 alter table public.members enable row level security;
 alter table public.events enable row level security;
