@@ -141,7 +141,7 @@ body {color: #191f28; font-family: "Pretendard", -apple-system, BlinkMacSystemFo
 .goods_body .confirm .btn {flex: none; width: 100%;}
 .goods_status-free {color: #1b64da; background: #e8f3ff;}
 .goods_status-other {color: #4e5968; background: #f2f4f6;}
-.goods_status-mine {color: #ffffff; background: #3182f6;}
+.goods_status-mine {color: #8b8b8b; background: #eeeeee;}
 .goods_status-trash {color: #b42318; background: #fdecea;}
 .goods_status-pickup {color: #9a5b00; background: #fff4de;}
 .goods_status-done {color: #4e5968; background: #e5e8eb;}
