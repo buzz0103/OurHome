@@ -40,6 +40,15 @@ alter table public.items add column if not exists disposal_by text references pu
 alter table public.items add column if not exists photos jsonb not null default '[]'::jsonb;
 ```
 
+## 가져감 표시 추가 (이미 설정을 마친 경우 한 번만)
+
+찜한 물건을 실제로 가져갔거나 버림·수거를 마치면 흐리게 표시돼요. Supabase SQL Editor에서 아래 두 줄을 한 번 실행해 주세요.
+
+```sql
+alter table public.items add column if not exists done_at timestamptz;
+alter table public.items add column if not exists done_by text references public.members (id);
+```
+
 ## 구조
 
 ```
