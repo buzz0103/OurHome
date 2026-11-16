@@ -144,12 +144,15 @@ body {color: #191f28; font-family: "Pretendard", -apple-system, BlinkMacSystemFo
 .goods_status-mine {color: #ffffff; background: #3182f6;}
 .goods_status-trash {color: #b42318; background: #fdecea;}
 .goods_status-pickup {color: #9a5b00; background: #fff4de;}
-.goods_item-out .goods_img {filter: grayscale(0.7); opacity: 0.75;}
-.goods_item-out .goods_name {color: #6b7684;}
+.goods_status-done {color: #4e5968; background: #e5e8eb;}
+.goods_item-done .goods_media {opacity: 0.45;}
+.goods_item-done .goods_img {filter: grayscale(1);}
+.goods_item-done .goods_name {color: #8b95a1; text-decoration: line-through;}
+.goods_item-done .goods_where {color: #b0b8c1;}
 .goods_choice {display: flex; flex-direction: column; gap: 6px; margin-top: 4px;}
 .goods_choice .btn {margin-top: 0;}
 .goods_choice_row {display: grid; grid-template-columns: 1fr 1fr; gap: 6px;}
-.goods_choice_row .btn {height: 36px; font-size: 13px;}
+.goods_choice_row .btn {height: 36px; padding: 0 4px; font-size: 13px; white-space: nowrap;}
 .goods_foot {display: flex; flex-wrap: wrap; gap: 0; margin: -4px 0 0 -8px;}
 .goods_foot .link {min-height: 36px; padding: 6px 8px; font-size: 13px;}
 .confirm {display: flex; flex-direction: column; gap: 12px; padding: 16px; border-radius: 8px; font-size: 14px; line-height: 20px; background: #f2f4f6;}
