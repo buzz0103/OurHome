@@ -37,6 +37,10 @@ create table if not exists public.items (
     created_at timestamptz not null default now()
 );
 
+-- 물건 버림·수거 표시 (아무도 안 가져갈 때)
+alter table public.items add column if not exists disposal text check (disposal in ('trash', 'pickup'));
+alter table public.items add column if not exists disposal_by text references public.members (id);
+
 -- 접근 권한: 링크를 아는 사람은 누구나 읽고 쓸 수 있음 (로그인 없음)
 alter table public.members enable row level security;
 alter table public.events enable row level security;
