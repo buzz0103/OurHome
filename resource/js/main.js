@@ -1,5 +1,7 @@
 document.addEventListener("DOMContentLoaded", () => {
     const MEMBER_IDS = ["m1", "m2", "m3", "m4"];
+    // 아무도 안 가져가는 물건의 처리 방법
+    const DISPOSALS = { trash: "버림", pickup: "수거" };
     const PHOTO_BUCKET = "item-photos";
     const WEEKDAYS = ["일", "월", "화", "수", "목", "금", "토"];
     const ME_KEY = "ourhome.me";
@@ -316,8 +318,10 @@ document.addEventListener("DOMContentLoaded", () => {
     function renderItems() {
         const counts = Object.fromEntries(MEMBER_IDS.map((id) => [id, 0]));
         let freeCount = 0;
+        const disposalCounts = { trash: 0, pickup: 0 };
         state.items.forEach((item) => {
             if (counts[item.picked_by] !== undefined) counts[item.picked_by] += 1;
+            else if (DISPOSALS[item.disposal]) disposalCounts[item.disposal] += 1;
             else freeCount += 1;
         });
 
@@ -329,7 +333,8 @@ document.addEventListener("DOMContentLoaded", () => {
             "data-key": id,
         }, h("span", { class: "summary_count" }, counts[id] + "개"), h("span", { class: "summary_name" }, nameOf(id)))));
 
-        const filters = [["all", "전체 " + state.items.length], ["free", "아직 주인 없음 " + freeCount]];
+        const filters = [["all", "전체 " + state.items.length], ["free", "아직 안 정함 " + freeCount],
+            ["trash", "버림 " + disposalCounts.trash], ["pickup", "수거 " + disposalCounts.pickup]];
         if (state.me) filters.push([state.me, "내가 고른 것 " + counts[state.me]]);
         $("[data-filter]").replaceChildren(...filters.map(([key, label]) => h("button", {
             type: "button",
@@ -350,7 +355,8 @@ document.addEventListener("DOMContentLoaded", () => {
         }
         const shown = state.items.filter((item) => {
             if (state.filter === "all") return true;
-            if (state.filter === "free") return !MEMBER_IDS.includes(item.picked_by);
+            if (state.filter === "free") return !MEMBER_IDS.includes(item.picked_by) && !DISPOSALS[item.disposal];
+            if (DISPOSALS[state.filter]) return !MEMBER_IDS.includes(item.picked_by) && item.disposal === state.filter;
             return item.picked_by === state.filter;
         });
         if (!shown.length) {
@@ -365,26 +371,38 @@ document.addEventListener("DOMContentLoaded", () => {
         const isDeleting = state.deleteTarget && state.deleteTarget.id === item.id;
         let status;
         let action = null;
-        if (!owner) {
-            status = h("span", { class: "goods_status goods_status-free" }, "아직 가져갈 사람 없음");
-            action = h("button", { type: "button", class: "btn btn-primary", "data-action": "pick", "data-id": item.id }, "제가 가져갈게요");
+        const disposal = !owner && DISPOSALS[item.disposal] ? item.disposal : null;
+        if (disposal) {
+            status = h("span", { class: "goods_status goods_status-" + disposal }, DISPOSALS[disposal] + (item.disposal_by ? " · " + nameOf(item.disposal_by) : ""));
+            action = h("button", { type: "button", class: "btn btn-secondary", "data-action": "dispose", "data-key": "", "data-id": item.id }, "되돌리기");
+        } else if (!owner) {
+            status = h("span", { class: "goods_status goods_status-free" }, "아직 안 정함");
+            action = h("div", { class: "goods_choice" },
+                h("button", { type: "button", class: "btn btn-primary", "data-action": "pick", "data-id": item.id }, "제가 가져갈게요"),
+                h("div", { class: "goods_choice_row" },
+                    h("button", { type: "button", class: "btn btn-outline", "data-action": "dispose", "data-key": "trash", "data-id": item.id }, "버림"),
+                    h("button", { type: "button", class: "btn btn-outline", "data-action": "dispose", "data-key": "pickup", "data-id": item.id }, "수거")));
         } else if (mine) {
             status = h("span", { class: "goods_status goods_status-mine" }, "내가 가져가요");
-            action = h("button", { type: "button", class: "btn btn-secondary", "data-action": "unpick", "data-id": item.id }, "안 가져갈래요 (취소)");
+            action = h("button", { type: "button", class: "btn btn-secondary", "data-action": "unpick", "data-id": item.id }, "취소하기");
         } else {
             status = h("span", { class: "goods_status goods_status-other" }, nameOf(owner) + "님이 가져가요");
         }
-        return h("li", { class: "goods_item" + (mine ? " goods_item-mine" : "") },
-            item.photo_url ? h("button", { type: "button", class: "goods_thumb", "data-action": "zoom-photo", "data-id": item.id, "aria-label": item.name + " 사진 크게 보기" },
-                h("img", { class: "goods_img", src: item.photo_url, alt: item.name, width: "640", height: "220", loading: index < 2 ? "eager" : "lazy" })) : null,
+        return h("li", { class: "goods_item" + (mine ? " goods_item-mine" : "") + (disposal ? " goods_item-out" : "") },
+            h("div", { class: "goods_media" },
+                item.photo_url
+                    ? h("button", { type: "button", class: "goods_thumb", "data-action": "zoom-photo", "data-id": item.id, "aria-label": item.name + " 사진 크게 보기" },
+                        h("img", { class: "goods_img", src: item.photo_url, alt: item.name, width: "400", height: "400", loading: index < 4 ? "eager" : "lazy" }))
+                    : h("button", { type: "button", class: "goods_thumb goods_thumb-empty", "data-action": "edit-item", "data-id": item.id }, "+ 사진 넣기"),
+                h("span", { class: "goods_no" }, String(index + 1).padStart(2, "0"))),
             h("div", { class: "goods_body" },
                 h("div", { class: "goods_name" }, item.name),
                 item.location ? h("div", { class: "goods_where" }, item.location) : null,
                 status,
                 action,
                 h("div", { class: "goods_foot" },
-                    h("button", { type: "button", class: "link", "data-action": "edit-item", "data-id": item.id }, item.photo_url ? "고치기" : "사진 넣기 · 고치기"),
-                    h("button", { type: "button", class: "link link-danger", "data-action": "ask-delete", "data-kind": "item", "data-id": item.id }, "목록에서 지우기")),
+                    h("button", { type: "button", class: "link", "data-action": "edit-item", "data-id": item.id }, "고치기"),
+                    h("button", { type: "button", class: "link link-danger", "data-action": "ask-delete", "data-kind": "item", "data-id": item.id }, "지우기")),
                 isDeleting ? renderConfirm() : null)
         );
     }
@@ -407,6 +425,25 @@ document.addEventListener("DOMContentLoaded", () => {
         view.remove();
         document.body.style.overflow = "";
     }
+    // 버림·수거로 표시하거나 되돌리기 (key가 비어 있으면 되돌리기)
+    async function disposeItem(id, key) {
+        const row = key
+            ? { disposal: key, disposal_by: state.me || null }
+            : { disposal: null, disposal_by: null };
+        let query = client.from("items").update(row).eq("id", id);
+        if (key) query = query.is("picked_by", null);
+        const { data, error } = await query.select("id");
+        if (error) {
+            console.error(error);
+            showToast(/disposal/.test(error.message || "")
+                ? "버림·수거 칸이 아직 없어요. README의 '버림·수거 추가'를 먼저 실행해 주세요."
+                : "저장하지 못했어요. 인터넷 연결을 확인하고 다시 눌러 주세요.");
+            return;
+        }
+        await loadAll();
+        if (!data.length) { showToast("그사이 누가 가져가기로 했어요"); return; }
+        showToast(key ? "'" + DISPOSALS[key] + "'으로 표시했어요" : "되돌렸어요");
+    }
     async function pickItem(id, take) {
         if (take && !state.me) {
             openWho();
@@ -417,7 +454,7 @@ document.addEventListener("DOMContentLoaded", () => {
         let query = client.from("items")
             .update({ picked_by: take ? state.me : null, picked_at: take ? new Date().toISOString() : null })
             .eq("id", id);
-        query = take ? query.is("picked_by", null) : query.eq("picked_by", state.me);
+        query = take ? query.is("picked_by", null).is("disposal", null) : query.eq("picked_by", state.me);
         const { data, error } = await query.select("id");
         if (error) { handleError(error); return; }
         await loadAll();
@@ -743,6 +780,7 @@ document.addEventListener("DOMContentLoaded", () => {
             case "done": setDone(id, true); break;
             case "undone": setDone(id, false); break;
             case "pick": pickItem(id, true); break;
+            case "dispose": disposeItem(id, target.dataset.key); break;
             case "unpick": pickItem(id, false); break;
             case "filter":
                 state.filter = state.filter === target.dataset.key && MEMBER_IDS.includes(target.dataset.key) ? "all" : target.dataset.key;
