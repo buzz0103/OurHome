@@ -32,6 +32,14 @@ alter table public.items add column if not exists disposal text check (disposal 
 alter table public.items add column if not exists disposal_by text references public.members (id);
 ```
 
+## 사진 여러 장 추가 (이미 설정을 마친 경우 한 번만)
+
+물건마다 사진을 최대 5장까지 올릴 수 있어요. Supabase SQL Editor에서 아래 한 줄을 한 번 실행해 주세요.
+
+```sql
+alter table public.items add column if not exists photos jsonb not null default '[]'::jsonb;
+```
+
 ## 구조
 
 ```
